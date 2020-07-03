@@ -1,6 +1,7 @@
 from tkinter import *
 import pygame
 from tkinter import filedialog
+import re
 
 pygame.mixer.init(frequency = 44100, size =16, channels = 1, buffer = 512)
 root = Tk()
@@ -11,12 +12,25 @@ root.geometry('500x300')
 playing_status = 1
 song_list  = []
 
-def add_song():
-	songs = filedialog.askopenfilenames(initialdir='audio/', title='Choose a song', filetype=(('mp3 files', '*mp3'),))
+#Regex expression for opening a file from any directory
+regex_path = re.compile(r"^([A-Za-z]:|[A-Za-z0-9_-]+(\.[A-Za-z0-9_-]+)*)((\/[A-Za-z0-9_\s.-]+)+)$")
+regex_file = re.compile(r"(\/[A-Za-z0-9_\s.-]+)$")
 
+def add_song():
+	global regex_path
+	global regex_file
+	global path_breaker
+	songs = filedialog.askopenfilenames(initialdir='audio/', title='Choose a song', filetype=(('mp3 files', '*mp3'),))
+	
 	for song in songs:
-		song = song.replace('C:/Users/user/Documents/mp3_player/audio/', '')
-		song = song.replace('.mp3', '') 
+		match1 = regex_path.fullmatch(song)
+		match2 = regex_file.search(song)
+		num = match1.group().find(f'{match2.group()}')
+		
+		path_breaker = match1.group()[:num]
+		song = song.replace(f'{path_breaker}', '')
+		song = song.replace(f'/', '')
+		song = song.replace('.mp3', '')
 		playlist.insert(END, song)
 
 def pause():
@@ -29,8 +43,9 @@ def pause():
 		playing_status = 1
 
 def play():
+	global path_breaker
 	song = playlist.get(ACTIVE)
-	song = f'C:/Users/user/Documents/mp3_player/audio/{song}.mp3'
+	song = f'{path_breaker}/{song}.mp3'
 	pygame.mixer.music.load(song)
 	pygame.mixer.music.play(loops=0)
 	
@@ -38,10 +53,11 @@ def stop():
 	pygame.mixer.music.stop()
 
 def nextSong():
+	global path_breaker
 	currentsong = playlist.curselection()
 	currentsong = currentsong[0] + 1
 	song = playlist.get(currentsong)
-	song = f'C:/Users/user/Documents/mp3_player/audio/{song}.mp3'
+	song = f'{path_breaker}/{song}.mp3'
 	pygame.mixer.music.load(song)
 	pygame.mixer.music.play(loops=0)
 
@@ -51,10 +67,11 @@ def nextSong():
 	playlist.selection_set(currentsong, last=None)
 
 def previousSong():
+	global path_breaker
 	currentsong = playlist.curselection()
 	currentsong = currentsong[0] - 1
 	song = playlist.get(currentsong)
-	song = f'C:/Users/user/Documents/mp3_player/audio/{song}.mp3'
+	song = f'{path_breaker}/{song}.mp3'
 	pygame.mixer.music.load(song)
 	pygame.mixer.music.play(loops=0)
 
