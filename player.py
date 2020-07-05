@@ -2,12 +2,14 @@ from tkinter import *
 import pygame
 from tkinter import filedialog
 import re
+import time
+from mutagen.mp3 import MP3
 
 pygame.mixer.init(frequency = 44100, size =16, channels = 1, buffer = 512)
 root = Tk()
 root.title('MP3 Player')
 #root.iconbitmap('')
-root.geometry('500x300')
+root.geometry('500x350')
 
 playing_status = 1
 song_list  = []
@@ -49,8 +51,12 @@ def play():
 	pygame.mixer.music.load(song)
 	pygame.mixer.music.play(loops=0)
 	
+	song_time()
+
 def stop():
 	pygame.mixer.music.stop()
+	playlist.selection_clear(ACTIVE)
+	status_bar.config(text='')
 
 def nextSong():
 	global path_breaker
@@ -87,6 +93,21 @@ def delete_song():
 def delete_all_songs():
 	playlist.delete(0, END)
 	pygame.mixer.music.stop()
+
+def song_time():
+	global path_breaker
+	#Display current time
+	current_time = pygame.mixer.music.get_pos() / 1000
+	formatted_time = time.strftime('%M:%S', time.gmtime(current_time))
+	#Get current song length with Mutagen
+	song = playlist.get(ACTIVE)
+	song = f'{path_breaker}/{song}.mp3'
+	song_load_mut = MP3(song)
+	song_length = song_load_mut.info.length
+	formatted_song_length = time.strftime('%M:%S', time.gmtime(song_length))
+
+	status_bar.config(text=f'Time: {formatted_time} / {formatted_song_length} ')
+	status_bar.after(1000, song_time)
 
 #Playlist
 playlist = Listbox(root, bg='black', fg='green', width = 60, selectbackground='grey', selectforeground='black')
@@ -130,5 +151,8 @@ remove_song = Menu(player_menu)
 player_menu.add_cascade(label='Remove Song', menu = remove_song)
 remove_song.add_command(label='Delete Song from playlist', command = delete_song)
 remove_song.add_command(label='Delete all songs from playlist', command = delete_all_songs)
+
+status_bar = Label(root, text='', bd=1, relief=GROOVE, anchor=E)
+status_bar.pack(fill=X, side=BOTTOM, ipady=2)
 
 root.mainloop()
