@@ -4,12 +4,13 @@ from tkinter import filedialog
 import re
 import time
 from mutagen.mp3 import MP3
+import tkinter.ttk as ttk
 
 pygame.mixer.init(frequency = 44100, size =16, channels = 1, buffer = 512)
 root = Tk()
 root.title('MP3 Player')
 #root.iconbitmap('')
-root.geometry('500x350')
+root.geometry('500x400')
 
 playing_status = 1
 song_list  = []
@@ -52,6 +53,10 @@ def play():
 	pygame.mixer.music.play(loops=0)
 	
 	song_time()
+
+	slider_pos = int(song_length)
+	slider.config(to = slider_pos, value=0)
+
 
 def stop():
 	pygame.mixer.music.stop()
@@ -96,6 +101,7 @@ def delete_all_songs():
 
 def song_time():
 	global path_breaker
+	global song_length
 	#Display current time
 	current_time = pygame.mixer.music.get_pos() / 1000
 	formatted_time = time.strftime('%M:%S', time.gmtime(current_time))
@@ -108,6 +114,12 @@ def song_time():
 
 	status_bar.config(text=f'Time: {formatted_time} / {formatted_song_length} ')
 	status_bar.after(1000, song_time)
+
+	#Update slider
+	slider.config(value=int(current_time))
+
+def slide(x):
+	slider_label.config(text = f'{int(slider.get())} of {int(song_length)}')
 
 #Playlist
 playlist = Listbox(root, bg='black', fg='green', width = 60, selectbackground='grey', selectforeground='black')
@@ -154,5 +166,11 @@ remove_song.add_command(label='Delete all songs from playlist', command = delete
 
 status_bar = Label(root, text='', bd=1, relief=GROOVE, anchor=E)
 status_bar.pack(fill=X, side=BOTTOM, ipady=2)
+
+slider = ttk.Scale(root, from_ = 0, to = 100, orient = HORIZONTAL, value = 0, command = slide, length = 360)
+slider.pack(pady = 30)
+
+slider_label = Label(root, text='0')
+slider_label.pack(pady=10)
 
 root.mainloop()
