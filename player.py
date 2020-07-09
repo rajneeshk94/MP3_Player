@@ -13,7 +13,6 @@ root.title('MP3 Player')
 root.geometry('500x400')
 
 playing_status = 1
-song_list  = []
 
 #Regex expression for opening a file from any directory
 regex_path = re.compile(r"^([A-Za-z]:|[A-Za-z0-9_-]+(\.[A-Za-z0-9_-]+)*)((\/[A-Za-z0-9_\s.-]+)+)$")
@@ -53,10 +52,6 @@ def play():
 	pygame.mixer.music.play(loops=0)
 	
 	song_time()
-
-	slider_pos = int(song_length)
-	slider.config(to = slider_pos, value=0)
-
 
 def stop():
 	pygame.mixer.music.stop()
@@ -105,6 +100,8 @@ def song_time():
 	#Display current time
 	current_time = pygame.mixer.music.get_pos() / 1000
 	formatted_time = time.strftime('%M:%S', time.gmtime(current_time))
+	#Temp label to get data
+	slider_label.config(text = f'Slider: {int(slider.get())} and Song_Pos: {int(current_time)}')
 	#Get current song length with Mutagen
 	song = playlist.get(ACTIVE)
 	song = f'{path_breaker}/{song}.mp3'
@@ -112,14 +109,31 @@ def song_time():
 	song_length = song_load_mut.info.length
 	formatted_song_length = time.strftime('%M:%S', time.gmtime(song_length))
 
-	status_bar.config(text=f'Time: {formatted_time} / {formatted_song_length} ')
+	current_time += 1
+
+	if int(slider.get()) == int(song_length):
+		status_bar.config(text=f'Time: {formatted_song_length} / {formatted_song_length} ')
+
+	elif int(slider.get()) == int(current_time):
+		slider_pos = int(song_length)
+		slider.config(to = slider_pos, value=int(current_time))
+	
+	else:
+		slider_pos = int(song_length)
+		slider.config(to = slider_pos, value=int(slider.get()))	
+		formatted_time = time.strftime('%M:%S', time.gmtime(int(slider.get())))
+		status_bar.config(text=f'Time: {formatted_time} / {formatted_song_length} ')	
+		one_sec = int(slider.get()) + 1
+		slider.config(value = one_sec)
+	
 	status_bar.after(1000, song_time)
 
-	#Update slider
-	slider.config(value=int(current_time))
-
 def slide(x):
-	slider_label.config(text = f'{int(slider.get())} of {int(song_length)}')
+	global path_breaker
+	song = playlist.get(ACTIVE)
+	song = f'{path_breaker}/{song}.mp3'
+	pygame.mixer.music.load(song)
+	pygame.mixer.music.play(loops=0, start = int(slider.get()))
 
 #Playlist
 playlist = Listbox(root, bg='black', fg='green', width = 60, selectbackground='grey', selectforeground='black')
