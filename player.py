@@ -13,7 +13,8 @@ root.title('MP3 Player')
 root.geometry('500x400')
 
 playing_status = 1
-
+global stopped
+stopped = False
 #Regex expression for opening a file from any directory
 regex_path = re.compile(r"^([A-Za-z]:|[A-Za-z0-9_-]+(\.[A-Za-z0-9_-]+)*)((\/[A-Za-z0-9_\s.-]+)+)$")
 regex_file = re.compile(r"(\/[A-Za-z0-9_\s.-]+)$")
@@ -46,6 +47,10 @@ def pause():
 
 def play():
 	global path_breaker
+	global stopped
+	slider.config(value = 0)
+	stopped = False
+
 	song = playlist.get(ACTIVE)
 	song = f'{path_breaker}/{song}.mp3'
 	pygame.mixer.music.load(song)
@@ -57,9 +62,14 @@ def stop():
 	pygame.mixer.music.stop()
 	playlist.selection_clear(ACTIVE)
 	status_bar.config(text='')
+	slider.config(value = 0)
+	stopped = True
 
 def nextSong():
 	global path_breaker
+	status_bar.config(text='')
+	slider.config(value = 0)
+
 	currentsong = playlist.curselection()
 	currentsong = currentsong[0] + 1
 	song = playlist.get(currentsong)
@@ -74,6 +84,9 @@ def nextSong():
 
 def previousSong():
 	global path_breaker
+	status_bar.config(text='')
+	slider.config(value = 0)
+
 	currentsong = playlist.curselection()
 	currentsong = currentsong[0] - 1
 	song = playlist.get(currentsong)
@@ -87,21 +100,27 @@ def previousSong():
 	playlist.selection_set(currentsong, last=None)
 
 def delete_song():
+	stop()
 	playlist.delete(ANCHOR)
 	pygame.mixer.music.stop()		
 
 def delete_all_songs():
+	stop()
 	playlist.delete(0, END)
 	pygame.mixer.music.stop()
 
 def song_time():
 	global path_breaker
 	global song_length
+	global stopped
+
+	if stopped:
+		return
+
 	#Display current time
 	current_time = pygame.mixer.music.get_pos() / 1000
 	formatted_time = time.strftime('%M:%S', time.gmtime(current_time))
-	#Temp label to get data
-	slider_label.config(text = f'Slider: {int(slider.get())} and Song_Pos: {int(current_time)}')
+	
 	#Get current song length with Mutagen
 	song = playlist.get(ACTIVE)
 	song = f'{path_breaker}/{song}.mp3'
@@ -118,6 +137,9 @@ def song_time():
 		slider_pos = int(song_length)
 		slider.config(to = slider_pos, value=int(current_time))
 	
+	elif stopped:
+		pass
+
 	else:
 		slider_pos = int(song_length)
 		slider.config(to = slider_pos, value=int(slider.get()))	
@@ -183,8 +205,5 @@ status_bar.pack(fill=X, side=BOTTOM, ipady=2)
 
 slider = ttk.Scale(root, from_ = 0, to = 100, orient = HORIZONTAL, value = 0, command = slide, length = 360)
 slider.pack(pady = 30)
-
-slider_label = Label(root, text='0')
-slider_label.pack(pady=10)
 
 root.mainloop()
