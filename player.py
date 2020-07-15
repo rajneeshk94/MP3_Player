@@ -157,7 +157,7 @@ def slide(x):
 	pygame.mixer.music.load(song)
 	pygame.mixer.music.play(loops=0, start = int(slider.get()))
 
-def volume(x):
+def set_volume(x):
 	pygame.mixer.music.set_volume(volume_slider.get())
 	current_volume = pygame.mixer.music.get_volume()
 
@@ -216,7 +216,7 @@ slider.grid(row = 2, column = 0,pady = 10)
 volume_label = LabelFrame(main_frame, text = 'Volume')
 volume_label.grid(row = 0, column = 1, padx = 30)
 
-volume_slider = ttk.Scale(volume_label, from_ = 0, to = 1, orient = VERTICAL, value = 1, command = volume, length = 125)
+volume_slider = ttk.Scale(volume_label, from_ = 0, to = 1, orient = VERTICAL, value = 1, command = set_volume, length = 125)
 volume_slider.pack()
 
 root.mainloop()
