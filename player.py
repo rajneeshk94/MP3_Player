@@ -157,9 +157,16 @@ def slide(x):
 	pygame.mixer.music.load(song)
 	pygame.mixer.music.play(loops=0, start = int(slider.get()))
 
+def volume(x):
+	pygame.mixer.music.set_volume(volume_slider.get())
+	current_volume = pygame.mixer.music.get_volume()
+
+main_frame = Frame(root)
+main_frame.pack(pady = 20)
+
 #Playlist
-playlist = Listbox(root, bg='black', fg='green', width = 60, selectbackground='grey', selectforeground='black')
-playlist.pack(pady=20)
+playlist = Listbox(main_frame, bg='black', fg='green', width = 60, selectbackground='grey', selectforeground='black')
+playlist.grid(row = 0, column = 0)
 
 #CreatePlayerButtons
 play_btn = PhotoImage(file='icons/play.png')
@@ -169,8 +176,8 @@ next_btn = PhotoImage(file='icons/next.png')
 back_btn = PhotoImage(file='icons/back.png')
 
 #PlayerButtonFrame
-buttons_frame = Frame(root)
-buttons_frame.pack()
+buttons_frame = Frame(main_frame)
+buttons_frame.grid(row = 1, column = 0, pady = 20)
 
 #CreateButtons
 back_button = Button(buttons_frame,image=back_btn,borderwidth=0, command = previousSong)
@@ -203,7 +210,13 @@ remove_song.add_command(label='Delete all songs from playlist', command = delete
 status_bar = Label(root, text='', bd=1, relief=GROOVE, anchor=E)
 status_bar.pack(fill=X, side=BOTTOM, ipady=2)
 
-slider = ttk.Scale(root, from_ = 0, to = 100, orient = HORIZONTAL, value = 0, command = slide, length = 360)
-slider.pack(pady = 30)
+slider = ttk.Scale(main_frame, from_ = 0, to = 100, orient = HORIZONTAL, value = 0, command = slide, length = 360)
+slider.grid(row = 2, column = 0,pady = 10)
+
+volume_label = LabelFrame(main_frame, text = 'Volume')
+volume_label.grid(row = 0, column = 1, padx = 30)
+
+volume_slider = ttk.Scale(volume_label, from_ = 0, to = 1, orient = VERTICAL, value = 1, command = volume, length = 125)
+volume_slider.pack()
 
 root.mainloop()
